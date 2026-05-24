@@ -10,55 +10,29 @@ export class MenuState extends State {
     ];
     this.selectedIndex = 0;
     this.showingInstructions = false;
-    
-    // Video background
+
+    // Video background (DOM element, rendered natively — no canvas drawImage)
     this.video = null;
-    this.videoLoaded = false;
-    
+
     // Background music
     this.bgMusic = null;
     this.musicLoaded = false;
-    
+
     // Menu selection sound
     this.selectSound = null;
   }
-  
+
   enter() {
     this.selectedIndex = 0;
     this.showingInstructions = false;
-    
-    // Create and setup video if not already created
+
+    // Use the video element already in the DOM
     if (!this.video) {
-      this.video = document.createElement('video');
+      this.video = document.getElementById('menu-video');
       this.video.src = './menu_background.mp4';
-      this.video.loop = true;
-      this.video.muted = true;
-      this.video.autoplay = true;
-      
-      // Handle various video events for better reliability
-      this.video.addEventListener('canplay', () => {
-        this.videoLoaded = true;
-        this.video.play().catch(e => console.log('Video play failed:', e));
-      });
-      
-      // Also try playing on loadedmetadata
-      this.video.addEventListener('loadedmetadata', () => {
-        this.video.play().catch(e => console.log('Video play on metadata failed:', e));
-      });
-      
-      // Handle errors
-      this.video.addEventListener('error', (e) => {
-        console.error('Video loading error:', e);
-        this.videoLoaded = false;
-      });
-      
-      // Force load the video
-      this.video.load();
-    } else {
-      // Resume playing if returning to menu
-      this.videoLoaded = true; // Assume it's loaded if we already created it
-      this.video.play().catch(e => console.log('Video play failed:', e));
     }
+    this.video.style.display = 'block';
+    this.video.play().catch(e => console.log('Video play failed:', e));
     
     // Create and setup background music if not already created
     if (!this.bgMusic) {
@@ -87,12 +61,10 @@ export class MenuState extends State {
   }
   
   exit() {
-    // Pause video when leaving menu
     if (this.video) {
       this.video.pause();
+      this.video.style.display = 'none';
     }
-    
-    // Pause music when leaving menu
     if (this.bgMusic) {
       this.bgMusic.pause();
     }
@@ -174,40 +146,8 @@ export class MenuState extends State {
     const ctx = renderer.ctx;
     const { width, height } = this.game;
     
-    // Draw video background if loaded (videoWidth > 0 means video data is available)
-    if (this.video && this.videoLoaded && this.video.videoWidth > 0) {
-      try {
-        // Scale video to cover the entire canvas
-        const videoAspect = this.video.videoWidth / this.video.videoHeight;
-        const canvasAspect = width / height;
-        
-        let drawWidth, drawHeight, drawX, drawY;
-        
-        if (videoAspect > canvasAspect) {
-          // Video is wider - fit height, crop width
-          drawHeight = height;
-          drawWidth = height * videoAspect;
-          drawX = (width - drawWidth) / 2;
-          drawY = 0;
-        } else {
-          // Video is taller - fit width, crop height
-          drawWidth = width;
-          drawHeight = width / videoAspect;
-          drawX = 0;
-          drawY = (height - drawHeight) / 2;
-        }
-        
-        ctx.drawImage(this.video, drawX, drawY, drawWidth, drawHeight);
-      } catch (e) {
-        // Fallback to solid color if video fails
-        ctx.fillStyle = '#f5e6d3';
-        ctx.fillRect(0, 0, width, height);
-      }
-    } else {
-      // Fallback background color
-      ctx.fillStyle = '#f5e6d3';
-      ctx.fillRect(0, 0, width, height);
-    }
+    // Video is rendered as a DOM element behind the canvas — just clear canvas here
+    ctx.clearRect(0, 0, width, height);
     
     
     if (this.showingInstructions) {

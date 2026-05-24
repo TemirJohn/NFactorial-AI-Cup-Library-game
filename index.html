@@ -28,11 +28,25 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      background-color: #f5e6d3;
     }
     
+    #menu-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      display: none;
+    }
+
     #game-canvas {
       display: block;
-      background-color: #f5e6d3;
+      position: relative;
+      z-index: 1;
+      background-color: transparent;
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
@@ -55,6 +69,7 @@
 </head>
 <body>
   <div id="game-container">
+    <video id="menu-video" loop muted playsinline preload="auto"></video>
     <canvas id="game-canvas"></canvas>
     <div id="loading">Loading Library...</div>
   </div>
