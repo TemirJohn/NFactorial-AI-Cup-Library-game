@@ -174,8 +174,8 @@ export class MenuState extends State {
     const ctx = renderer.ctx;
     const { width, height } = this.game;
     
-    // Draw video background if loaded
-    if (this.video && this.videoLoaded && !this.video.paused) {
+    // Draw video background if loaded (videoWidth > 0 means video data is available)
+    if (this.video && this.videoLoaded && this.video.videoWidth > 0) {
       try {
         // Scale video to cover the entire canvas
         const videoAspect = this.video.videoWidth / this.video.videoHeight;
