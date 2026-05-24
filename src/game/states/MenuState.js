@@ -30,7 +30,7 @@ export class MenuState extends State {
     // Create and setup video if not already created
     if (!this.video) {
       this.video = document.createElement('video');
-      this.video.src = '/menu_background.mp4';
+      this.video.src = './menu_background.mp4';
       this.video.loop = true;
       this.video.muted = true;
       this.video.autoplay = true;
@@ -62,7 +62,7 @@ export class MenuState extends State {
     
     // Create and setup background music if not already created
     if (!this.bgMusic) {
-      this.bgMusic = new Audio('/intro_music.mp3');
+      this.bgMusic = new Audio('./intro_music.mp3');
       this.bgMusic.loop = true;
       this.bgMusic.volume = 0.5; // Set to 50% volume
       
@@ -81,7 +81,7 @@ export class MenuState extends State {
     
     // Create menu selection sound if not already created
     if (!this.selectSound) {
-      this.selectSound = new Audio('/menu_select.mp3');
+      this.selectSound = new Audio('./menu_select.mp3');
       this.selectSound.volume = 0.7; // Slightly louder than music
     }
   }

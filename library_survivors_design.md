@@ -1,5 +1,5 @@
 
-# **Library Survivors – Complete Gameplay & Systems Brief**
+# **Library – Complete Gameplay & Systems Brief**
 
 ---
 

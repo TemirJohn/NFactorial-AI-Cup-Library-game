@@ -741,7 +741,7 @@ export class Kid extends Entity {
     // Only play if we haven't already played it for this flee session
     if (!this.hasPlayedLaughSound) {
       // Select laugh sound based on sprite type
-      const laughFile = `/kid_laughing_${this.spriteType}.mp3`;
+      const laughFile = `./kid_laughing_${this.spriteType}.mp3`;
       const laughSound = new Audio(laughFile);
       laughSound.volume = 0.5;
       laughSound.play().catch(e => console.log('Kid laugh sound play failed:', e));

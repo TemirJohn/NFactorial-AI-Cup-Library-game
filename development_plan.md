@@ -1,4 +1,4 @@
-# Library Survivors - Web Development Plan
+# Library - Web Development Plan
 
 ## Technology Stack
 - **Frontend**: Vanilla JavaScript with Canvas API
@@ -8,7 +8,7 @@
 
 ## Project Structure
 ```
-library-survivors/
+library/
 ├── index.html
 ├── package.json
 ├── vite.config.js
