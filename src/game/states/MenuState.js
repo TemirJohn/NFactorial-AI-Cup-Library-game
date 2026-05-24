@@ -30,7 +30,7 @@ export class MenuState extends State {
     if (!this.game.menuBgFrame) {
       const img = new Image();
       img.onload = () => { this.game.menuBgFrame = img; };
-      img.src = './assets/menu_bg.png';
+      img.src = './sprites/menu_bg.png';
     }
     
     // Create and setup background music if not already created
