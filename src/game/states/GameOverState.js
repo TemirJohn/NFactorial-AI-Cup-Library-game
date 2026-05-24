@@ -12,9 +12,6 @@ export class GameOverState extends State {
     ];
     this.selectedIndex = 0;
     this.selectSound = null;
-
-    // Video background (DOM element, shared with MenuState)
-    this.video = null;
   }
   
   enter(data) {
@@ -35,12 +32,7 @@ export class GameOverState extends State {
       uhOhSound.play().catch(e => console.log('Uh oh sound play failed:', e));
     }
     
-    // Use the shared DOM video element
-    if (!this.video) {
-      this.video = document.getElementById('menu-video');
-    }
-    this.video.style.display = 'block';
-    this.video.play().catch(e => console.log('Video play failed:', e));
+    // bgFrame is captured by MenuState and stored on game object — nothing to do here
     
     // Collect game stats
     const gameData = this.game.gameData;
@@ -54,12 +46,7 @@ export class GameOverState extends State {
     };
   }
   
-  exit() {
-    if (this.video) {
-      this.video.pause();
-      this.video.style.display = 'none';
-    }
-  }
+  exit() {}
   
   update(deltaTime) {
     const input = this.game.inputManager;
@@ -118,8 +105,19 @@ export class GameOverState extends State {
     const ctx = renderer.ctx;
     const { width, height } = this.game;
     
-    // Video is rendered as a DOM element behind the canvas — just clear canvas here
-    ctx.clearRect(0, 0, width, height);
+    // Draw captured static frame (same frame MenuState captured)
+    const frame = this.game.menuBgFrame;
+    if (frame) {
+      const fa = frame.width / frame.height;
+      const ca = width / height;
+      let dw, dh, dx, dy;
+      if (fa > ca) { dh = height; dw = height * fa; dx = (width - dw) / 2; dy = 0; }
+      else         { dw = width;  dh = width / fa;  dx = 0; dy = (height - dh) / 2; }
+      ctx.drawImage(frame, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle = this.won ? '#4169E1' : '#8B0000';
+      ctx.fillRect(0, 0, width, height);
+    }
     
     // Result box with rounded corners
     const boxWidth = 700;

@@ -11,8 +11,8 @@ export class MenuState extends State {
     this.selectedIndex = 0;
     this.showingInstructions = false;
 
-    // Video background (DOM element, rendered natively — no canvas drawImage)
-    this.video = null;
+    // Static frame captured from video (shared via game object to avoid duplicate loads)
+    this.bgFrame = null;
 
     // Background music
     this.bgMusic = null;
@@ -26,13 +26,12 @@ export class MenuState extends State {
     this.selectedIndex = 0;
     this.showingInstructions = false;
 
-    // Use the video element already in the DOM
-    if (!this.video) {
-      this.video = document.getElementById('menu-video');
-      this.video.src = './menu_background.mp4';
+    // Load background image once
+    if (!this.game.menuBgFrame) {
+      const img = new Image();
+      img.onload = () => { this.game.menuBgFrame = img; };
+      img.src = './sprites/menu_bg.png';
     }
-    this.video.style.display = 'block';
-    this.video.play().catch(e => console.log('Video play failed:', e));
     
     // Create and setup background music if not already created
     if (!this.bgMusic) {
@@ -61,10 +60,6 @@ export class MenuState extends State {
   }
   
   exit() {
-    if (this.video) {
-      this.video.pause();
-      this.video.style.display = 'none';
-    }
     if (this.bgMusic) {
       this.bgMusic.pause();
     }
@@ -146,8 +141,19 @@ export class MenuState extends State {
     const ctx = renderer.ctx;
     const { width, height } = this.game;
     
-    // Video is rendered as a DOM element behind the canvas — just clear canvas here
-    ctx.clearRect(0, 0, width, height);
+    // Draw captured static frame from video (or fallback color)
+    const frame = this.game.menuBgFrame;
+    if (frame) {
+      const fa = frame.width / frame.height;
+      const ca = width / height;
+      let dw, dh, dx, dy;
+      if (fa > ca) { dh = height; dw = height * fa; dx = (width - dw) / 2; dy = 0; }
+      else         { dw = width;  dh = width / fa;  dx = 0; dy = (height - dh) / 2; }
+      ctx.drawImage(frame, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle = '#f5e6d3';
+      ctx.fillRect(0, 0, width, height);
+    }
     
     
     if (this.showingInstructions) {

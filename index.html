@@ -10,7 +10,7 @@
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       background-color: #2c1810;
       display: flex;
@@ -20,7 +20,7 @@
       font-family: 'Arial', sans-serif;
       overflow: hidden;
     }
-    
+
     #game-container {
       position: relative;
       width: 100vw;
@@ -28,30 +28,16 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #f5e6d3;
-    }
-    
-    #menu-video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: 0;
-      display: none;
     }
 
     #game-canvas {
       display: block;
-      position: relative;
-      z-index: 1;
-      background-color: transparent;
+      background-color: #f5e6d3;
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
     }
-    
+
     #loading {
       position: absolute;
       top: 50%;
@@ -61,7 +47,7 @@
       font-size: 24px;
       font-weight: bold;
     }
-    
+
     .hidden {
       display: none !important;
     }
@@ -69,7 +55,6 @@
 </head>
 <body>
   <div id="game-container">
-    <video id="menu-video" loop muted playsinline preload="auto"></video>
     <canvas id="game-canvas"></canvas>
     <div id="loading">Loading Library...</div>
   </div>
