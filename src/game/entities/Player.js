@@ -59,8 +59,10 @@ export class Player extends Entity {
     };
 
     // Power-up state
-    this.powerUpTimer = 0;     // remaining seconds of active power-up
-    this.powerUpDuration = 30; // total duration when picked up
+    this.powerUpTimer = 0;     // shush wave remaining time
+    this.powerUpDuration = 30;
+    this.coffeeTimer = 0;      // unlimited stamina remaining time
+    this.magnetTimer = 0;      // giant pickup radius remaining time
 
     // Sound effects
     this.outOfBreathSound = null;
@@ -77,12 +79,15 @@ export class Player extends Entity {
     this.isSprinting = input.isActionDown('sprint') && this.stats.stamina > 0;
     
     if (this.isSprinting) {
-      // Drain stamina while sprinting
-      this.stats.stamina -= 20 * deltaTime; // 20 stamina per second
-      this.stats.stamina = Math.max(0, this.stats.stamina);
+      if (this.coffeeTimer > 0) {
+        // Coffee: keep stamina full
+        this.stats.stamina = this.stats.maxStamina;
+      } else {
+        this.stats.stamina -= 20 * deltaTime;
+        this.stats.stamina = Math.max(0, this.stats.stamina);
+      }
     } else {
-      // Regenerate stamina when not sprinting
-      this.stats.stamina += 10 * deltaTime; // 10 stamina per second
+      this.stats.stamina += 10 * deltaTime;
       this.stats.stamina = Math.min(this.stats.maxStamina, this.stats.stamina);
     }
     
@@ -175,10 +180,10 @@ export class Player extends Entity {
       this.animationTimer = 0;
     }
     
-    // Countdown power-up timer
-    if (this.powerUpTimer > 0) {
-      this.powerUpTimer -= deltaTime;
-    }
+    // Countdown power-up timers
+    if (this.powerUpTimer > 0) this.powerUpTimer -= deltaTime;
+    if (this.coffeeTimer > 0)  this.coffeeTimer  -= deltaTime;
+    if (this.magnetTimer > 0)  this.magnetTimer  -= deltaTime;
 
     // Update shush wave cooldown and animation
     if (this.shushWave.cooldown > 0) {
@@ -253,7 +258,7 @@ export class Player extends Entity {
       }
     );
     
-    // Draw power-up aura
+    // Shush wave aura (blue)
     if (this.powerUpTimer > 0) {
       const auraAlpha = 0.25 + Math.sin(Date.now() * 0.005) * 0.1;
       const auraR = 36 + Math.sin(Date.now() * 0.004) * 4;
@@ -262,6 +267,38 @@ export class Player extends Entity {
       ctx.strokeStyle = '#66aaff';
       ctx.lineWidth = 3;
       ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(this.getCenterX(), this.getCenterY(), auraR, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Coffee aura (golden)
+    if (this.coffeeTimer > 0) {
+      const auraAlpha = 0.3 + Math.sin(Date.now() * 0.006) * 0.12;
+      const auraR = 28 + Math.sin(Date.now() * 0.005) * 3;
+      ctx.save();
+      ctx.globalAlpha = auraAlpha;
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      ctx.arc(this.getCenterX(), this.getCenterY(), auraR, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Magnet aura (purple, large)
+    if (this.magnetTimer > 0) {
+      const auraAlpha = 0.2 + Math.sin(Date.now() * 0.007) * 0.1;
+      const auraR = this.stats.pickupRadius * 32 * 5 + Math.sin(Date.now() * 0.003) * 6;
+      ctx.save();
+      ctx.globalAlpha = auraAlpha;
+      ctx.strokeStyle = '#dd44ff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 5]);
       ctx.beginPath();
       ctx.arc(this.getCenterX(), this.getCenterY(), auraR, 0, Math.PI * 2);
       ctx.stroke();

@@ -17,6 +17,7 @@ export class PlayingState extends State {
     this.particles = [];
     this.powerUps = [];
     this.powerUpSpawnTimer = 5; // first power-up after 5 seconds
+    this.powerUpSpawnCount = 0; // counts total spawns for guaranteed variety
     this.maxPowerUps = 2;
     
     // World bounds - minimal area just for bookshelves
@@ -73,6 +74,7 @@ export class PlayingState extends State {
     this.shelves = [];
     this.powerUps = [];
     this.powerUpSpawnTimer = 5;
+    this.powerUpSpawnCount = 0;
     this.powerUpNotification = { active: false, timer: 0 };
     
     // Reset game data
@@ -614,6 +616,8 @@ export class PlayingState extends State {
         ctx.save();
         ctx.translate(clampedX, clampedY);
         ctx.rotate(angle);
+        const TYPE_ICONS = { shushWave: '🤫', coffee: '☕', magnet: '🧲', freeze: '❄️', chaosVacuum: '🌀' };
+        const arrowIcon = TYPE_ICONS[pu.type] || '✨';
         ctx.fillStyle = `rgba(100, 180, 255, ${0.7 + Math.sin(Date.now() * 0.005) * 0.3})`;
         ctx.beginPath();
         ctx.moveTo(12, 0);
@@ -624,74 +628,114 @@ export class PlayingState extends State {
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🤫', -20, 0);
+        ctx.fillText(arrowIcon, -20, 0);
         ctx.restore();
       }
     }
 
-    // Bottom Center — Shush Wave ability icon (while power-up active)
-    if (this.player && this.player.powerUpTimer > 0) {
-      const sw = this.player.shushWave;
-      const isReady = sw.cooldown <= 0;
-      const cooldownRatio = isReady ? 0 : sw.cooldown / sw.cooldownMax;
-      const puRatio = this.player.powerUpTimer / this.player.powerUpDuration;
-      const iconX = width / 2;
-      const iconY = height - 55;
+    // Bottom Center — Active power-up icons
+    if (this.player) {
+      const activeItems = [];
+      if (this.player.powerUpTimer > 0) activeItems.push('shushWave');
+      if (this.player.coffeeTimer  > 0) activeItems.push('coffee');
+      if (this.player.magnetTimer  > 0) activeItems.push('magnet');
 
-      ctx.save();
+      if (activeItems.length > 0) {
+        const iconSpacing = 75;
+        const totalWidth = (activeItems.length - 1) * iconSpacing;
+        const startX = width / 2 - totalWidth / 2;
+        const iconY = height - 55;
 
-      // Power-up duration arc (green outer ring)
-      ctx.beginPath();
-      ctx.arc(iconX, iconY, 33, -Math.PI / 2,
-        -Math.PI / 2 + puRatio * Math.PI * 2);
-      ctx.strokeStyle = '#66ffaa';
-      ctx.lineWidth = 4;
-      ctx.stroke();
+        const PASSIVE_CFG = {
+          coffee: { icon: '☕', fill: 'rgba(90, 50, 5, 0.9)', ring: '#ffaa00', timer: () => this.player.coffeeTimer,  total: 20 },
+          magnet: { icon: '🧲', fill: 'rgba(55, 8, 70, 0.9)',  ring: '#dd44ff', timer: () => this.player.magnetTimer, total: 15 }
+        };
 
-      // Background circle
-      ctx.beginPath();
-      ctx.arc(iconX, iconY, 28, 0, Math.PI * 2);
-      ctx.fillStyle = isReady ? 'rgba(68, 153, 255, 0.9)' : 'rgba(20, 20, 40, 0.85)';
-      ctx.fill();
-      ctx.strokeStyle = isReady ? '#ffffff' : '#555';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+        ctx.save();
 
-      // Cooldown sweep overlay
-      if (!isReady) {
-        ctx.beginPath();
-        ctx.moveTo(iconX, iconY);
-        ctx.arc(iconX, iconY, 28, -Math.PI / 2,
-          -Math.PI / 2 + cooldownRatio * Math.PI * 2);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fill();
+        activeItems.forEach((type, i) => {
+          const iconX = startX + i * iconSpacing;
+
+          if (type === 'shushWave') {
+            const sw = this.player.shushWave;
+            const isReady = sw.cooldown <= 0;
+            const cdRatio = isReady ? 0 : sw.cooldown / sw.cooldownMax;
+            const puRatio = this.player.powerUpTimer / this.player.powerUpDuration;
+
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, 33, -Math.PI / 2, -Math.PI / 2 + puRatio * Math.PI * 2);
+            ctx.strokeStyle = '#66ffaa';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, 28, 0, Math.PI * 2);
+            ctx.fillStyle = isReady ? 'rgba(68, 153, 255, 0.9)' : 'rgba(20, 20, 40, 0.85)';
+            ctx.fill();
+            ctx.strokeStyle = isReady ? '#fff' : '#555';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (!isReady) {
+              ctx.beginPath();
+              ctx.moveTo(iconX, iconY);
+              ctx.arc(iconX, iconY, 28, -Math.PI / 2, -Math.PI / 2 + cdRatio * Math.PI * 2);
+              ctx.closePath();
+              ctx.fillStyle = 'rgba(0,0,0,0.5)';
+              ctx.fill();
+            }
+
+            ctx.font = '22px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🤫', iconX, iconY);
+
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = isReady ? '#fff' : '#aaa';
+            ctx.fillText('[F]', iconX, iconY + 43);
+
+            ctx.font = 'bold 13px Arial';
+            ctx.fillStyle = '#66ffaa';
+            ctx.fillText(Math.ceil(this.player.powerUpTimer) + 's', iconX, iconY + 58);
+
+            if (!isReady) {
+              ctx.font = '10px Arial';
+              ctx.fillStyle = '#aaa';
+              ctx.fillText('cd ' + Math.ceil(sw.cooldown) + 's', iconX, iconY - 42);
+            }
+
+          } else {
+            const cfg = PASSIVE_CFG[type];
+            const t = cfg.timer();
+            const ratio = Math.min(1, t / cfg.total);
+
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, 33, -Math.PI / 2, -Math.PI / 2 + ratio * Math.PI * 2);
+            ctx.strokeStyle = cfg.ring;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, 28, 0, Math.PI * 2);
+            ctx.fillStyle = cfg.fill;
+            ctx.fill();
+            ctx.strokeStyle = cfg.ring;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.font = '22px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(cfg.icon, iconX, iconY);
+
+            ctx.font = 'bold 13px Arial';
+            ctx.fillStyle = cfg.ring;
+            ctx.fillText(Math.ceil(t) + 's', iconX, iconY + 43);
+          }
+        });
+
+        ctx.restore();
       }
-
-      // Icon
-      ctx.font = '22px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🤫', iconX, iconY);
-
-      // Key hint
-      ctx.font = 'bold 12px Arial';
-      ctx.fillStyle = isReady ? '#fff' : '#aaa';
-      ctx.fillText('[F]', iconX, iconY + 43);
-
-      // Power-up remaining time
-      ctx.font = 'bold 13px Arial';
-      ctx.fillStyle = '#66ffaa';
-      ctx.fillText(Math.ceil(this.player.powerUpTimer) + 's', iconX, iconY + 58);
-
-      // Cooldown label
-      if (!isReady) {
-        ctx.font = '10px Arial';
-        ctx.fillStyle = '#aaa';
-        ctx.fillText('cd ' + Math.ceil(sw.cooldown) + 's', iconX, iconY - 42);
-      }
-
-      ctx.restore();
     }
 
     ctx.restore();
@@ -924,7 +968,8 @@ export class PlayingState extends State {
   checkBookPickup() {
     if (!this.player) return;
     
-    const pickupRadiusPixels = this.player.stats.pickupRadius * 32;
+    const magnetMult = this.player.magnetTimer > 0 ? 5 : 1;
+    const pickupRadiusPixels = this.player.stats.pickupRadius * 32 * magnetMult;
     const playerCenterX = this.player.getCenterX();
     const playerCenterY = this.player.getCenterY();
     
@@ -1115,7 +1160,7 @@ export class PlayingState extends State {
     this.powerUpSpawnTimer -= deltaTime;
     if (this.powerUpSpawnTimer <= 0 && this.powerUps.length < this.maxPowerUps) {
       this.spawnPowerUp();
-      this.powerUpSpawnTimer = 60;
+      this.powerUpSpawnTimer = 30;
     }
 
     // Update existing power-ups
@@ -1133,30 +1178,61 @@ export class PlayingState extends State {
       const dx = pu.getCenterX() - px;
       const dy = pu.getCenterY() - py;
       if (Math.sqrt(dx * dx + dy * dy) < pickupR) {
-        this.player.activatePowerUp();
-        this.powerUpNotification = { active: false, timer: 0 };
-        // Floating XP text reused for feedback
-        this.particles.push({
-          type: 'xp',
-          x: px,
-          y: this.player.y - 10,
-          text: '🤫 Нажми F!',
-          vy: -60,
-          lifetime: 2.5,
-          age: 0
-        });
+        this.applyPowerUpEffect(pu.type, px, py);
         return false;
       }
       return true;
     });
   }
 
+  applyPowerUpEffect(type, px, py) {
+    let text = '';
+    switch (type) {
+      case 'shushWave':
+        this.player.activatePowerUp();
+        text = '🤫 Нажми F!';
+        break;
+      case 'coffee':
+        this.player.coffeeTimer = 20;
+        text = '☕ Безлимитная выносливость!';
+        break;
+      case 'magnet':
+        this.player.magnetTimer = 15;
+        text = '🧲 Магнит книг активирован!';
+        break;
+      case 'freeze':
+        for (const kid of this.kids) kid.stun(6);
+        text = '❄️ Все дети заморожены!';
+        break;
+      case 'chaosVacuum':
+        this.game.gameData.chaosLevel = Math.max(0, this.game.gameData.chaosLevel - 25);
+        text = '🌀 Хаос -25!';
+        break;
+    }
+    this.particles.push({
+      type: 'xp',
+      x: px,
+      y: this.player.y - 10,
+      text,
+      vy: -60,
+      lifetime: 2.5,
+      age: 0
+    });
+  }
+
   spawnPowerUp() {
-    // First power-up: spawn near player start so it's easy to find
+    // First two spawns are guaranteed so player sees new items early
+    const GUARANTEED = ['coffee', 'magnet'];
+    const RANDOM_POOL = ['shushWave', 'coffee', 'magnet', 'freeze', 'chaosVacuum'];
+    const type = this.powerUpSpawnCount < GUARANTEED.length
+      ? GUARANTEED[this.powerUpSpawnCount]
+      : RANDOM_POOL[Math.floor(Math.random() * RANDOM_POOL.length)];
+    this.powerUpSpawnCount++;
+
+    // First power-up: spawn near player so it's easy to find
     const nearPlayer = this.powerUps.length === 0 && this.player;
     let pos;
     if (nearPlayer) {
-      // Try positions in a ring around the player
       const px = this.player.getCenterX();
       const py = this.player.getCenterY();
       const angles = [0, Math.PI / 4, Math.PI / 2, Math.PI * 3 / 4, Math.PI];
@@ -1177,7 +1253,7 @@ export class PlayingState extends State {
     } else {
       pos = this.findSafePowerUpPosition();
     }
-    this.powerUps.push(new PowerUp(this.game, pos.x, pos.y));
+    this.powerUps.push(new PowerUp(this.game, pos.x, pos.y, type));
   }
 
   findSafePowerUpPosition() {
