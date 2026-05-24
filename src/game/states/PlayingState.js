@@ -439,7 +439,8 @@ export class PlayingState extends State {
   renderUI(ctx) {
     const gameData = this.game.gameData;
     const { width, height } = this.game;
-    
+    const t = (key) => this.game.locale.t(key);
+
     ctx.save();
     
     // Top Center - Chaos meter
@@ -466,7 +467,7 @@ export class PlayingState extends State {
     ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`CHAOS: ${Math.floor(gameData.chaosLevel)}%`, width / 2, meterY + meterHeight / 2);
+    ctx.fillText(`${t('hud_chaos')}: ${Math.floor(gameData.chaosLevel)}%`, width / 2, meterY + meterHeight / 2);
     
     // Wave increase notification below chaos meter
     if (this.maxKidsIncreaseNotification.active) {
@@ -518,7 +519,7 @@ export class PlayingState extends State {
     
     ctx.font = '18px Arial';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`Kids: ${this.kids.length}/${this.maxKids}`, width - 65, 82);
+    ctx.fillText(`${t('hud_kids')}: ${this.kids.length}/${this.maxKids}`, width - 65, 82);
     
     // Left Side Panel - Player Stats
     const panelX = 10;
@@ -534,7 +535,7 @@ export class PlayingState extends State {
     ctx.textAlign = 'left';
     ctx.font = 'bold 20px Arial';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`Level ${gameData.playerLevel}`, panelX + 10, panelY + 30);
+    ctx.fillText(`${t('hud_level')} ${gameData.playerLevel}`, panelX + 10, panelY + 30);
     
     // XP bar
     const xpBarX = panelX + 10;
@@ -557,14 +558,9 @@ export class PlayingState extends State {
     
     if (this.player) {
       // Stamina bar
-      ctx.textAlign = 'left';
-      ctx.font = '16px Arial';
-      ctx.fillStyle = '#fff';
-      ctx.fillText('Stamina', panelX + 10, panelY + 80);
-      
-      const staminaBarX = panelX + 75;
+      const staminaBarX = panelX + 10;
       const staminaBarY = panelY + 65;
-      const staminaBarWidth = panelWidth - 85;
+      const staminaBarWidth = panelWidth - 20;
       const staminaBarHeight = 20;
       
       ctx.fillStyle = '#333';
@@ -583,12 +579,12 @@ export class PlayingState extends State {
       ctx.font = '16px Arial';
       ctx.textAlign = 'left';
       ctx.fillStyle = '#fff';
-      ctx.fillText(`Books: ${this.player.carriedBooks.length} / ${this.player.stats.carrySlots}`, panelX + 10, panelY + 105);
+      ctx.fillText(`${t('hud_books')}: ${this.player.carriedBooks.length} / ${this.player.stats.carrySlots}`, panelX + 10, panelY + 105);
       
       // Speed indicator (if sprinting)
       if (this.player.isSprinting && this.player.stats.stamina > 0) {
         ctx.fillStyle = '#ffff00';
-        ctx.fillText('SPRINTING', panelX + 10, panelY + 130);
+        ctx.fillText(t('hud_sprinting'), panelX + 10, panelY + 130);
       }
     }
     
@@ -1186,27 +1182,28 @@ export class PlayingState extends State {
   }
 
   applyPowerUpEffect(type, px, py) {
+    const t = (key) => this.game.locale.t(key);
     let text = '';
     switch (type) {
       case 'shushWave':
         this.player.activatePowerUp();
-        text = '🤫 Нажми F!';
+        text = t('pu_shush');
         break;
       case 'coffee':
         this.player.coffeeTimer = 20;
-        text = '☕ Безлимитная выносливость!';
+        text = t('pu_coffee');
         break;
       case 'magnet':
         this.player.magnetTimer = 15;
-        text = '🧲 Магнит книг активирован!';
+        text = t('pu_magnet');
         break;
       case 'freeze':
         for (const kid of this.kids) kid.stun(6);
-        text = '❄️ Все дети заморожены!';
+        text = t('pu_freeze');
         break;
       case 'chaosVacuum':
         this.game.gameData.chaosLevel = Math.max(0, this.game.gameData.chaosLevel - 25);
-        text = '🌀 Хаос -25!';
+        text = t('pu_chaos');
         break;
     }
     this.particles.push({

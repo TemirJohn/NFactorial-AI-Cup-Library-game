@@ -7,8 +7,8 @@ export class GameOverState extends State {
     this.reason = '';
     this.stats = {};
     this.menuItems = [
-      { text: 'Play Again', action: () => this.playAgain() },
-      { text: 'Main Menu', action: () => this.mainMenu() }
+      { key: 'gameover_playAgain', action: () => this.playAgain() },
+      { key: 'gameover_mainMenu', action: () => this.mainMenu() }
     ];
     this.selectedIndex = 0;
     this.selectSound = null;
@@ -215,53 +215,51 @@ export class GameOverState extends State {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
+    const t = (key) => this.game.locale.t(key);
+
     // Title
     ctx.fillStyle = this.won ? '#228B22' : '#8B0000';
     ctx.font = 'bold 64px Arial';
-    ctx.fillText(this.won ? 'VICTORY!' : 'GAME OVER', width / 2, boxY + 80);
-    
+    ctx.fillText(this.won ? t('gameover_victory') : t('gameover_gameOver'), width / 2, boxY + 80);
+
     // Subtitle
     ctx.fillStyle = '#3d2914';
     ctx.font = '24px Arial';
     if (this.won) {
-      ctx.fillText('You survived 30 minutes of library chaos!', width / 2, boxY + 130);
+      ctx.fillText(t('gameover_victoryMsg'), width / 2, boxY + 130);
     } else {
-      let message = 'The library descended into chaos...';
-      if (this.reason === 'chaos') {
-        message = 'The chaos overwhelmed the library!';
-      }
-      ctx.fillText(message, width / 2, boxY + 130);
+      ctx.fillText(this.reason === 'chaos' ? t('gameover_chaosOverwhelmed') : t('gameover_chaosMsg'), width / 2, boxY + 130);
     }
-    
+
     // Stats
     ctx.font = '20px Arial';
     ctx.textAlign = 'left';
     const statX = boxX + 100;
     let statY = boxY + 200;
-    
+
     const minutes = Math.floor(this.stats.timeElapsed / 60);
     const seconds = this.stats.timeElapsed % 60;
-    
+
     const statLines = [
-      `Time Survived: ${minutes}:${seconds.toString().padStart(2, '0')}`,
-      `Final Level: ${this.stats.level}`,
-      `Peak Chaos: ${this.stats.chaosLevel}%`,
-      `Books Collected: ${this.stats.booksCollected}`,
-      `Books Shelved: ${this.stats.booksShelved}`,
-      `Kids Repelled: ${this.stats.kidsRepelled}`
+      `${t('gameover_timeSurvived')} ${minutes}:${seconds.toString().padStart(2, '0')}`,
+      `${t('gameover_finalLevel')} ${this.stats.level}`,
+      `${t('gameover_peakChaos')} ${this.stats.chaosLevel}%`,
+      `${t('gameover_booksCollected')} ${this.stats.booksCollected}`,
+      `${t('gameover_booksShelved')} ${this.stats.booksShelved}`,
+      `${t('gameover_kidsRepelled')} ${this.stats.kidsRepelled}`
     ];
-    
+
     statLines.forEach(line => {
       ctx.fillText(line, statX, statY);
       statY += 30;
     });
-    
+
     // Menu items
     ctx.textAlign = 'center';
     ctx.font = '32px Arial';
     this.menuItems.forEach((item, index) => {
       const y = boxY + 480 + index * 50;
-      
+
       if (index === this.selectedIndex) {
         ctx.fillStyle = '#8B4513';
         ctx.fillRect(boxX + 150, y - 20, boxWidth - 300, 40);
@@ -269,8 +267,8 @@ export class GameOverState extends State {
       } else {
         ctx.fillStyle = '#3d2914';
       }
-      
-      ctx.fillText(item.text, width / 2, y);
+
+      ctx.fillText(t(item.key), width / 2, y);
     });
     
     ctx.restore();

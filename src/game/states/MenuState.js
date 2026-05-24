@@ -5,8 +5,8 @@ export class MenuState extends State {
   constructor(game) {
     super(game);
     this.menuItems = [
-      { text: 'Start Game', action: () => this.startGame() },
-      { text: 'Instructions', action: () => this.showInstructions() }
+      { key: 'menu_start', action: () => this.startGame() },
+      { key: 'menu_instructions', action: () => this.showInstructions() }
     ];
     this.selectedIndex = 0;
     this.showingInstructions = false;
@@ -127,7 +127,21 @@ export class MenuState extends State {
     // Mouse support
     const mousePos = input.getMousePosition();
     if (mousePos && !this.showingInstructions) {
+      // Language switcher buttons (top-right)
       const { width, height } = this.game;
+      const btnW = 60; const btnH = 30; const btnY = 15;
+      const ruBtnX = width - 145; const kzBtnX = width - 75;
+      if (input.isMouseButtonPressed(0)) {
+        if (mousePos.x >= ruBtnX && mousePos.x <= ruBtnX + btnW &&
+            mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
+          this.game.locale.set('ru');
+        }
+        if (mousePos.x >= kzBtnX && mousePos.x <= kzBtnX + btnW &&
+            mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
+          this.game.locale.set('kz');
+        }
+      }
+
       const menuStartY = height * 0.7; // Menu starts at 70% down
       
       // Check each menu item
@@ -212,24 +226,41 @@ export class MenuState extends State {
     
     this.menuItems.forEach((item, index) => {
       const y = menuStartY + index * 60;
-      
+      const label = this.game.locale.t(item.key);
+
       if (index === this.selectedIndex) {
-        // Highlight selected item with semi-transparent background
         ctx.fillStyle = 'rgba(139, 69, 19, 0.8)';
         ctx.fillRect(width / 2 - 200, y - 25, 400, 50);
-        
-        // Selected text
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(item.text, width / 2, y);
+        ctx.fillText(label, width / 2, y);
       } else {
-        // Non-selected items with shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillText(item.text, width / 2 + 2, y + 2);
+        ctx.fillText(label, width / 2 + 2, y + 2);
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(item.text, width / 2, y);
+        ctx.fillText(label, width / 2, y);
       }
     });
-    
+
+    // Language switcher buttons
+    const langs = [{ code: 'ru', label: 'RU' }, { code: 'kz', label: 'ҚАЗ' }];
+    const btnW = 60; const btnH = 30; const btnY = 15;
+    const btnXs = [width - 145, width - 75];
+    langs.forEach(({ code, label }, i) => {
+      const active = this.game.locale.current === code;
+      ctx.fillStyle = active ? '#8B4513' : 'rgba(0,0,0,0.55)';
+      ctx.strokeStyle = active ? '#ffdd88' : '#888';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(btnXs[i], btnY, btnW, btnH, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = `bold 15px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = active ? '#fff' : '#ccc';
+      ctx.fillText(label, btnXs[i] + btnW / 2, btnY + btnH / 2);
+    });
+
     ctx.restore();
   }
   
@@ -277,29 +308,28 @@ export class MenuState extends State {
     ctx.stroke();
     
     // Title
+    const t = (key) => this.game.locale.t(key);
     ctx.fillStyle = '#3d2914';
     ctx.font = 'bold 42px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('HOW TO PLAY', width / 2, boxY + 50);
-    
-    ctx.font = '20px Arial'; // Reduced from 24px
+    ctx.fillText(t('menu_howToPlay'), width / 2, boxY + 50);
+
+    ctx.font = '20px Arial';
     const instructions = [
-      'Survive 30 minutes of library chaos!',
-      '',
-      'CONTROLS:',
-      'WASD/Arrow Keys - Move',
-      'Shift - Sprint (uses stamina)',
-      'P/Escape - Pause',
-      '',
-      'GAMEPLAY:',
-      '• Pick up books automatically when near them',
-      '• Return books to matching colored shelves',
-      '• Kids will steal books - chase them away!',
-      '• Keep Chaos below 100% or you lose',
-      '• Level up to choose upgrades',
-      '',
-      'Press Enter or Escape to return'
+      t('menu_survive'), '',
+      t('menu_controls'),
+      t('menu_ctrl_move'),
+      t('menu_ctrl_sprint'),
+      t('menu_ctrl_pause'),
+      t('menu_ctrl_shush'), '',
+      t('menu_gameplay'),
+      t('menu_gp_pickup'),
+      t('menu_gp_return'),
+      t('menu_gp_kids'),
+      t('menu_gp_chaos'),
+      t('menu_gp_level'), '',
+      t('menu_back')
     ];
     
     const lineHeight = 28; // Spacing between lines

@@ -4,6 +4,7 @@ import { InputManager } from './systems/InputManager.js';
 import { AssetLoader } from './systems/AssetLoader.js';
 import { Camera } from './systems/Camera.js';
 import { Renderer } from './systems/Renderer.js';
+import { LocaleManager } from './systems/LocaleManager.js';
 
 export class Game {
   constructor(canvasId) {
@@ -32,6 +33,7 @@ export class Game {
     this.assetLoader = new AssetLoader();
     this.camera = new Camera(this.width, this.height);
     this.renderer = new Renderer(this.ctx, this.camera);
+    this.locale = new LocaleManager();
     
     // Debug info
     this.debug = {

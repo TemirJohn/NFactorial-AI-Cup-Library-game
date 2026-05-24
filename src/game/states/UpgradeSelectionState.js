@@ -125,10 +125,11 @@ export class UpgradeSelectionState extends State {
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 36px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('LEVEL UP!', width / 2, 100);
-    
+    const t = (key, ...a) => this.game.locale.t(key, ...a);
+    ctx.fillText(t('upgrade_levelUp'), width / 2, 100);
+
     ctx.font = '20px Arial';
-    ctx.fillText('Choose an upgrade:', width / 2, 140);
+    ctx.fillText(t('upgrade_choose'), width / 2, 140);
     
     // Render upgrade cards
     const cardWidth = 200;
@@ -166,33 +167,38 @@ export class UpgradeSelectionState extends State {
       ctx.fillStyle = '#fff';
       ctx.fillText(upgrade.icon || '✨', cardX + cardWidth / 2, cardY + 60);
       
-      // Upgrade name
+      // Upgrade name (localized)
+      const upgName = t(`upgrade_${upgrade.id}_name`) || upgrade.name;
       ctx.font = 'bold 18px Arial';
       ctx.fillStyle = '#fff';
-      ctx.fillText(upgrade.name, cardX + cardWidth / 2, cardY + 100);
-      
+      ctx.fillText(upgName, cardX + cardWidth / 2, cardY + 100);
+
       // Current level
       const player = this.game.stateManager.getState('playing')?.player;
       const currentLevel = player?.upgradeLevels?.[upgrade.id] || 0;
-      
+
       if (currentLevel > 0) {
         ctx.font = '14px Arial';
         ctx.fillStyle = '#aaa';
-        ctx.fillText(`Level ${currentLevel} → ${currentLevel + 1}`, cardX + cardWidth / 2, cardY + 125);
+        ctx.fillText(t('upgrade_level', currentLevel, currentLevel + 1), cardX + cardWidth / 2, cardY + 125);
       }
-      
-      // Description
+
+      // Description (localized)
+      const upgDesc = t(`upgrade_${upgrade.id}_desc`) || upgrade.description;
       ctx.font = '14px Arial';
       ctx.fillStyle = '#ddd';
-      const lines = this.wrapText(upgrade.description, cardWidth - 20);
+      const lines = this.wrapText(upgDesc, cardWidth - 20);
       lines.forEach((line, i) => {
         ctx.fillText(line, cardX + cardWidth / 2, cardY + 155 + i * 20);
       });
-      
-      // Effect preview
+
+      // Effect preview (localized)
       ctx.font = 'bold 16px Arial';
       ctx.fillStyle = '#00ff00';
-      const effectText = upgrade.getDescription(currentLevel + 1);
+      const effectFn = this.game.locale.t(`upgrade_${upgrade.id}_effect`);
+      const effectText = typeof effectFn === 'function'
+        ? effectFn(currentLevel + 1)
+        : upgrade.getDescription(currentLevel + 1);
       const effectLines = this.wrapText(effectText, cardWidth - 20, 'bold 16px Arial');
       effectLines.forEach((line, i) => {
         ctx.fillText(line, cardX + cardWidth / 2, cardY + 210 + i * 20);
@@ -203,7 +209,7 @@ export class UpgradeSelectionState extends State {
     ctx.font = '16px Arial';
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
-    ctx.fillText('Use ← → or mouse to select, Enter/Space/Click/1-3 to confirm', width / 2, height - 50);
+    ctx.fillText(t('upgrade_hint'), width / 2, height - 50);
     
     ctx.restore();
   }

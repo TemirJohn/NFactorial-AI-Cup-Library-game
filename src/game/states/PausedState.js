@@ -5,9 +5,9 @@ export class PausedState extends State {
   constructor(game) {
     super(game);
     this.menuItems = [
-      { text: 'Resume', action: () => this.resume() },
-      { text: 'Restart', action: () => this.restart() },
-      { text: 'Main Menu', action: () => this.mainMenu() }
+      { key: 'pause_resume', action: () => this.resume() },
+      { key: 'pause_restart', action: () => this.restart() },
+      { key: 'pause_mainMenu', action: () => this.mainMenu() }
     ];
     this.selectedIndex = 0;
     this.selectSound = null;
@@ -114,13 +114,13 @@ export class PausedState extends State {
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('PAUSED', width / 2, boxY + 60);
-    
+    ctx.fillText(this.game.locale.t('pause_title'), width / 2, boxY + 60);
+
     // Menu items
     ctx.font = '32px Arial';
     this.menuItems.forEach((item, index) => {
       const y = boxY + 140 + index * 50;
-      
+
       if (index === this.selectedIndex) {
         ctx.fillStyle = '#8B4513';
         ctx.fillRect(boxX + 50, y - 20, boxWidth - 100, 40);
@@ -128,8 +128,8 @@ export class PausedState extends State {
       } else {
         ctx.fillStyle = '#3d2914';
       }
-      
-      ctx.fillText(item.text, width / 2, y);
+
+      ctx.fillText(this.game.locale.t(item.key), width / 2, y);
     });
     
     ctx.restore();
